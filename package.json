@@ -12,6 +12,11 @@
     "type": "module"
   },
   "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig-cjs.json"
+      }
+    },
     "transform": {
       "^.+\\.ts$": "ts-jest"
     },
@@ -31,14 +36,15 @@
     "test": "./node_modules/.bin/jest --runInBand --verbose"
   },
   "dependencies": {
+    "cmdo-inverse": "3.0.3",
     "eventemitter3": "4.0.7",
     "nanoid": "3.1.25"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.2",
-    "@types/node": "^16.10.3",
-    "cmdo-cli": "^0.2.5",
-    "ts-jest": "^27.0.5",
+    "@types/jest": "27.0.2",
+    "@types/node": "16.10.3",
+    "cmdo-cli": "0.2.5",
+    "ts-jest": "27.0.5",
     "typescript": "4.4.3"
   }
 }
