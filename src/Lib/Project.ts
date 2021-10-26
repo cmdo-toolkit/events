@@ -42,7 +42,7 @@ export const project = {
    * have processing requirements that needs to know about every unknown
    * events that has occured in the event stream.
    */
-  continuous<E extends Event = Event>(event: EventClass<E>, handler: Handler<E>) {
+  on<E extends Event = Event>(event: EventClass<E>, handler: Handler<E>) {
     return new Projection(event, handler, { filter: FILTER_CONTINUOUS });
   },
 
@@ -52,9 +52,8 @@ export const project = {
    * @remarks
    *
    * This method is a catch all for events that does not fall under the
-   * stricter defintitons of once and continuous patterns. This is a good
-   * place to deal with data that does not depend on a strict order of
-   * events.
+   * stricter defintitons of once and on patterns. This is a good place
+   * to deal with data that does not depend on a strict order of events.
    */
   all<E extends Event = Event>(event: EventClass<E>, handler: Handler<E>) {
     return new Projection(event, handler, { filter: FILTER_ALL });
