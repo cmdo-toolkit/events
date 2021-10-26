@@ -6,6 +6,7 @@ import { getLogicalTimestamp } from "../Utils/Timestamp";
 import type { Event } from "./Event";
 import { EventEmitter } from "./EventEmitter";
 import { publisher } from "./Publisher";
+import type { Reducer } from "./Reducer";
 
 export abstract class Store<E extends Event = Event, D extends Descriptor = Descriptor> extends EventEmitter<{
   saved(descriptor: D): void;
@@ -24,11 +25,13 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
 
     this.toRevisedEvent = this.toRevisedEvent.bind(this);
     this.toEvent = this.toEvent.bind(this);
-
-    this.insert = this.insert.bind(this);
-    this.outdated = this.outdated.bind(this);
-    this.descriptor = this.descriptor.bind(this);
   }
+
+  /*
+   |--------------------------------------------------------------------------------
+   | Mutators
+   |--------------------------------------------------------------------------------
+   */
 
   public async save(stream: string, event: E) {
     const descriptor = this.descriptor(stream, event);
@@ -51,6 +54,24 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
       return revision;
     }
   }
+
+  /*
+   |--------------------------------------------------------------------------------
+   | Readers
+   |--------------------------------------------------------------------------------
+   */
+
+  public async reduce<R extends Reducer<R["state"]>>(reducer: R, filter: JSONType): Promise<R["state"]> {
+    return this.find(filter).then((events) => {
+      return reducer.reduce(events);
+    });
+  }
+
+  /*
+   |--------------------------------------------------------------------------------
+   | Parsers
+   |--------------------------------------------------------------------------------
+   */
 
   public toRevisedEvent(descriptor: D): E {
     return this.toEvent(this.toRevisedDescriptor(descriptor));
@@ -77,6 +98,12 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
     }
     return event.from(descriptor);
   }
+
+  /*
+   |--------------------------------------------------------------------------------
+   | Event Handlers
+   |--------------------------------------------------------------------------------
+   */
 
   public send(descriptor: D): D {
     this.emit("saved", descriptor);
@@ -107,6 +134,8 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
    * will be treated as a duplicate response type and ignored by the store.
    */
   public abstract insert(descriptor: D): Promise<any>;
+
+  public abstract find(filter: any): Promise<E[]>;
 
   /**
    * Return a outdated check for the descriptor.

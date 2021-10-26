@@ -1,6 +1,6 @@
 {
   "name": "cmdo-events",
-  "version": "3.0.0-rc12",
+  "version": "3.0.0-rc13",
   "description": "A distributed event sourcing solution written in TypeScript.",
   "repository": "https://github.com/cmdo-toolkit/events.git",
   "author": "Christoffer Rødvik <dev@kodemon.net>",
