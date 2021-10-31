@@ -45,7 +45,7 @@ describe("Event Projector", () => {
 
     beforeEach(() => {
       handler = jest.fn();
-      projection = project.continuous(MockEvent, handler);
+      projection = project.on(MockEvent, handler);
     });
 
     afterEach(() => {
