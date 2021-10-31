@@ -39,7 +39,7 @@ describe("Event Projector", () => {
     });
   });
 
-  describe("when registered with .continuous", () => {
+  describe("when registered with .on", () => {
     let projection: Projection;
     let handler: jest.Mock;
 
