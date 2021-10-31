@@ -6,7 +6,9 @@ export const event = new (class StreamEventEmitter extends EventEmitter {
     this.emit("connect");
   }
   public push(descriptor: Descriptor) {
-    this.emit(descriptor.stream, descriptor);
+    for (const stream of descriptor.streams) {
+      this.emit(stream, descriptor);
+    }
   }
   public disconnect() {
     this.emit("disconnect");

@@ -33,8 +33,8 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
    |--------------------------------------------------------------------------------
    */
 
-  public async save(stream: string, event: E) {
-    const descriptor = this.descriptor(stream, event);
+  public async save(streams: string[], event: E) {
+    const descriptor = this.descriptor(streams, event);
     if (await this.insert(descriptor)) {
       publisher.project(event, {
         hydrated: false,
@@ -61,9 +61,11 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
    |--------------------------------------------------------------------------------
    */
 
-  public async reduce<R extends Reducer<R["state"]>>(reducer: R, filter: JSONType): Promise<R["state"]> {
+  public async reduce<R extends Reducer<R["state"]>>(reducer: R, filter: JSONType): Promise<R["state"] | undefined> {
     return this.find(filter).then((events) => {
-      return reducer.reduce(events);
+      if (events.length > 0) {
+        return reducer.reduce(events);
+      }
     });
   }
 
@@ -135,6 +137,9 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
    */
   public abstract insert(descriptor: D): Promise<any>;
 
+  /**
+   * Return a list of events from the given filter.
+   */
   public abstract find(filter: any): Promise<E[]>;
 
   /**
@@ -159,7 +164,18 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
   public abstract outdated(descriptor: D): Promise<boolean>;
 
   /**
-   * Return a descriptor object from the given streamId and event.
+   * Return a product event descriptor.
+   *
+   * @example
+   *
+   * ```ts
+   * return {
+   *   id: nanoid(),
+   *   streams,
+   *   event: event.toJSON()
+   * };
+   * ```
+   *
    */
-  public abstract descriptor(stream: string, event: E): D;
+  public abstract descriptor(streams: string[], event: E): D;
 }
