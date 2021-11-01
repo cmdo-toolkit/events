@@ -46,10 +46,10 @@ export abstract class Store<E extends Event = Event, D extends Descriptor = Desc
 
   public async add(descriptor: D) {
     const revision = this.toRevisedDescriptor(descriptor);
-    if (await this.insert(descriptor)) {
+    if (await this.insert(revision)) {
       publisher.project(this.toEvent(revision), {
         hydrated: true,
-        outdated: await this.outdated(descriptor)
+        outdated: await this.outdated(revision)
       });
       return revision;
     }
