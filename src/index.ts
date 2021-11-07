@@ -1,8 +1,7 @@
 import { container } from "./Container";
 import { action } from "./Lib/Action";
 import { Event } from "./Lib/Event";
-import { project } from "./Lib/Project";
-import { Projection } from "./Lib/Projection";
+import { Projection, projection } from "./Lib/Projection";
 import { Reducer } from "./Lib/Reducer";
 import { Store } from "./Lib/Store";
 import { Stream } from "./Lib/Stream";
@@ -25,8 +24,8 @@ export {
   getDate,
   getLogicalTimestamp,
   getTime,
-  project,
   Projection,
+  projection,
   Reducer,
   Store,
   Stream,
@@ -38,7 +37,7 @@ export default {
   container,
   byRevised,
   byCreated,
-  project,
+  projection,
   byReversedCreated,
   Event,
   getDate,
