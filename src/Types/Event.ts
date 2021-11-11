@@ -3,15 +3,26 @@ import { JSONType } from "./Shared";
 export type EventClass<T> = {
   new (...args: any[]): T;
   type: string;
+  genesis?: boolean;
 };
 
-export type JSONEvent<D extends JSONType = JSONType, M extends JSONType = JSONType> = {
+export type EventDescriptor<Data extends JSONType = JSONType> = {
+  stream: string;
+  event: EventData<Data>;
+  prevHash?: string;
+};
+
+export type EventData<EventData extends JSONType = JSONType> = {
   type: string;
-  data: D;
-  meta: JSONEventMeta<M>;
+  data: EventData;
+  meta: EventMeta;
+  hash: string;
 };
 
-export type JSONEventMeta<Meta = JSONType> = {
-  revised: string;
+export interface EventMeta {
+  /**
+   * Logical hybrid clock timestamp representing the time of
+   * which the event was created.
+   */
   created: string;
-} & Meta;
+}

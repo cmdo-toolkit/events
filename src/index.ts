@@ -3,13 +3,14 @@ import { action } from "./Lib/Action";
 import { Event } from "./Lib/Event";
 import { Projection, projection } from "./Lib/Projection";
 import { Reducer } from "./Lib/Reducer";
-import { Store } from "./Lib/Store";
 import { Stream } from "./Lib/Stream";
+import type { EventNetwork } from "./Services/EventNetwork";
+import { EventStore } from "./Services/EventStore";
 import type { ActionContext } from "./Types/Action";
-import type { Descriptor } from "./Types/Store";
-import type { Status as StreamStatus } from "./Types/Stream";
+import type { EventDescriptor } from "./Types/Event";
+import type { StreamNetworkHandler } from "./Types/Stream";
 import { getDate, getTime } from "./Utils/Date";
-import { byCreated, byReversedCreated, byRevised } from "./Utils/Sort";
+import { byCreated, byReversedCreated } from "./Utils/Sort";
 import { getLogicalTimestamp } from "./Utils/Timestamp";
 
 export {
@@ -17,26 +18,26 @@ export {
   ActionContext,
   byCreated,
   byReversedCreated,
-  byRevised,
   container,
-  Descriptor,
   Event,
+  EventDescriptor,
+  EventNetwork,
+  EventStore,
   getDate,
   getLogicalTimestamp,
   getTime,
   Projection,
   projection,
   Reducer,
-  Store,
   Stream,
-  StreamStatus
+  StreamNetworkHandler
 };
 
 export default {
   action,
   container,
-  byRevised,
   byCreated,
+  EventStore,
   projection,
   byReversedCreated,
   Event,
@@ -45,6 +46,5 @@ export default {
   getTime,
   Projection,
   Reducer,
-  Store,
   Stream
 };

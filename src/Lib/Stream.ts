@@ -1,145 +1,145 @@
-import { event } from "../Events/Stream";
-import type { Descriptor } from "../Types/Store";
-import type { Status } from "../Types/Stream";
-import { byCreated } from "../Utils/Sort";
-import { EventEmitter } from "./EventEmitter";
+import { container } from "../Container";
+import { StreamNotFoundError, StreamPrevHashError } from "../Errors/Stream";
+import { EventDescriptor } from "../Types/Event";
+import { StreamObserver, Streams } from "../Types/Stream";
+import { Event } from "./Event";
+import { publisher } from "./Publisher";
 import { Queue } from "./Queue";
+import { Reducer } from "./Reducer";
 
-export abstract class Stream extends EventEmitter<{
-  status: (value: Status) => void;
-}> {
+/*
+ |--------------------------------------------------------------------------------
+ | Streams
+ |--------------------------------------------------------------------------------
+ */
+
+const streams: Streams = {};
+
+/*
+ |--------------------------------------------------------------------------------
+ | Stream
+ |--------------------------------------------------------------------------------
+ */
+
+export class Stream {
   public readonly name: string;
 
-  public status: Status;
-
-  private readonly queue: Queue<Descriptor>;
+  public readonly network = container.get("EventNetwork");
+  public readonly store = container.get("EventStore");
 
   constructor(name: string) {
-    super();
-
     this.name = name;
-
-    this.status = "stopped";
-
-    this.queue = new Queue(async (descriptor) => {
-      await this.addEvent(descriptor);
-      await this.setCheckpoint(descriptor.event.meta.revised);
-    });
-
-    this.onConnect = this.onConnect.bind(this);
-    this.onDisconnect = this.onDisconnect.bind(this);
-    this.onEvent = this.onEvent.bind(this);
-
-    event.addListener("connect", this.onConnect);
-    event.addListener("disconnect", this.onDisconnect);
   }
 
   /*
    |--------------------------------------------------------------------------------
-   | Static
+   | Static Helpers
    |--------------------------------------------------------------------------------
    */
 
-  public static connect(): void {
-    event.connect();
+  public static async save(name: string, event: Event): Promise<EventDescriptor> {
+    return this.get(name).save(event);
   }
 
-  public static push(descriptor: Descriptor): void {
-    event.push(descriptor);
-  }
-
-  public static disconnect(): void {
-    event.disconnect();
-  }
-
-  /*
-   |--------------------------------------------------------------------------------
-   | Utilities
-   |--------------------------------------------------------------------------------
-   */
-
-  public is(status: Status) {
-    return this.status === status;
-  }
-
-  public async start(): Promise<this> {
-    if (!this.is("stopped")) {
-      return this;
+  public static async append(descriptor: EventDescriptor, store = container.get("EventStore")): Promise<EventDescriptor> {
+    const record = await store.getLastEventByStream(descriptor.stream);
+    if (!record) {
+      throw new StreamNotFoundError(descriptor.stream);
     }
-
-    this.setStatus("connecting");
-    await this.connect();
-
-    this.setStatus("hydrating");
-    await this.hydrate();
-
-    this.setStatus("started");
-    event.addListener(this.name, this.onEvent);
-
-    return this;
+    if (record.event.hash !== descriptor.prevHash) {
+      throw new StreamPrevHashError(descriptor.stream, record.event.hash, descriptor.prevHash);
+    }
+    await store.append(descriptor);
+    await publisher.project(store.toEvent(descriptor), {
+      hydrated: true,
+      outdated: await store.outdated(descriptor)
+    });
+    return descriptor;
   }
 
-  private async hydrate(): Promise<void> {
-    const descriptors = (await this.getEvents()).sort(byCreated);
-    if (descriptors.length > 0) {
-      for (const descriptor of descriptors) {
+  public static async reduce<R extends Reducer<R["state"]>>(reducer: R, name: string): Promise<R["state"] | undefined> {
+    return this.get(name).reduce(reducer);
+  }
+
+  public static get(name: string): Stream {
+    return new Stream(name);
+  }
+
+  /*
+   |--------------------------------------------------------------------------------
+   | Stream Utilities
+   |--------------------------------------------------------------------------------
+   */
+
+  /**
+   * Attempts to save the provided event to the local stream and on success
+   * sends event forwards for projection.
+   */
+  public async save(event: Event): Promise<EventDescriptor> {
+    if (event.genesis) {
+      const descriptor = await this.store.append(event.toDescriptor(this.name));
+      await publisher.project(event, {
+        hydrated: true,
+        outdated: false
+      });
+      return descriptor;
+    }
+    const lastDescriptor = await this.store.getLastEventByStream(this.name);
+    if (!lastDescriptor) {
+      throw new StreamNotFoundError(this.name);
+    }
+    const descriptor = await this.store.append(event.toDescriptor(this.name, lastDescriptor.event.hash));
+    await publisher.project(event, {
+      hydrated: true,
+      outdated: false
+    });
+    return descriptor;
+  }
+
+  public async reduce<R extends Reducer<R["state"]>>(reducer: R): Promise<R["state"] | undefined> {
+    return this.store.getByStream(this.name).then((descriptors) => {
+      if (descriptors.length > 0) {
+        return reducer.reduce(descriptors.map(this.store.toEvent));
+      }
+    });
+  }
+
+  /**
+   * Creates a listener for events propogating through the network.
+   */
+  public subscribe() {
+    const observer = this.observer();
+    observer.subscribers += 1;
+    return this.unsubscribe.bind(this);
+  }
+
+  /*
+   |--------------------------------------------------------------------------------
+   | Observation Utilities
+   |--------------------------------------------------------------------------------
+   */
+
+  private unsubscribe() {
+    const observer = this.observer();
+    observer.subscribers -= 1;
+    if (observer.subscribers === 0) {
+      this.network.removeListener(this.name);
+      delete streams[this.name];
+    }
+  }
+
+  private observer(): StreamObserver {
+    if (streams[this.name]) {
+      return streams[this.name];
+    }
+    streams[this.name] = {
+      queue: new Queue<EventDescriptor>(Stream.append),
+      subscribers: 0,
+      onEvent(descriptor: EventDescriptor) {
         this.queue.push(descriptor);
       }
-      await new Promise<void>((resolve, reject) => {
-        this.queue.once("error", reject);
-        this.queue.once("drained", resolve);
-      });
-      return this.hydrate();
-    }
+    };
+    this.network.addListener(this.name, streams[this.name].onEvent);
+    return streams[this.name];
   }
-
-  public stop(): this {
-    event.removeListener(this.name, this.onEvent);
-    return this.setStatus("stopped");
-  }
-
-  /*
-   |--------------------------------------------------------------------------------
-   | Event Handlers
-   |--------------------------------------------------------------------------------
-   */
-
-  private onConnect(): this {
-    if (this.is("stopped")) {
-      this.start();
-    }
-    return this;
-  }
-
-  private setStatus(status: Status): this {
-    if (!this.is(status)) {
-      this.status = status;
-      this.emit("status", status);
-    }
-    return this;
-  }
-
-  private onEvent(descriptor: Descriptor): this {
-    this.queue.push(descriptor);
-    return this;
-  }
-
-  private onDisconnect(): this {
-    this.stop();
-    return this;
-  }
-
-  /*
-   |--------------------------------------------------------------------------------
-   | Abstracted Utilities
-   |--------------------------------------------------------------------------------
-   */
-
-  public abstract connect(): Promise<void>;
-
-  public abstract addEvent(descriptor: Descriptor): Promise<void>;
-  public abstract getEvents(): Promise<Descriptor[]>;
-
-  public abstract setCheckpoint(value: string): Promise<void>;
-  public abstract getCheckpoint(): Promise<string | undefined>;
 }

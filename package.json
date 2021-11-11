@@ -1,6 +1,6 @@
 {
   "name": "cmdo-events",
-  "version": "3.0.0-rc18",
+  "version": "3.0.0-rc19",
   "description": "A distributed event sourcing solution written in TypeScript.",
   "repository": "https://github.com/cmdo-toolkit/events.git",
   "author": "Christoffer Rødvik <dev@kodemon.net>",
@@ -29,7 +29,7 @@
   "scripts": {
     "prepublishOnly": "npm run lint && npm run build",
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
-    "build:esm": "./node_modules/.bin/tsc --project tsconfig-esm.json && ./node_modules/.bin/cmdo output esm -f esm",
+    "build:esm": "./node_modules/.bin/tsc --project tsconfig.json && ./node_modules/.bin/cmdo output esm -f esm",
     "build:cjs": "./node_modules/.bin/tsc --project tsconfig-cjs.json",
     "clean": "rm -rf ./cjs ./esm ./types",
     "lint": "./node_modules/.bin/eslint 'src/**/*.ts'",
@@ -37,10 +37,12 @@
   },
   "dependencies": {
     "cmdo-inverse": "3.0.3",
+    "crypto-js": "^4.1.1",
     "eventemitter3": "4.0.7",
     "nanoid": "3.1.29"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.0.2",
     "@types/jest": "27.0.2",
     "@types/node": "16.10.3",
     "@typescript-eslint/eslint-plugin": "4.33.0",

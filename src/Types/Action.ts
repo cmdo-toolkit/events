@@ -1,7 +1,7 @@
-import { Store } from "../Lib/Store";
+import type { Stream } from "../Lib/Stream";
 
 export type ActionHandler<Data> = (data: Data, ctx: ActionContext) => Promise<void>;
 
 export interface ActionContext {
-  store: Store;
+  streams: typeof Stream;
 }
