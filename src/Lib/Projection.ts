@@ -1,8 +1,8 @@
 import { FILTER_ALL, FILTER_CONTINUOUS, FILTER_ONCE } from "../Constants/Projection";
-import { event as projections } from "../Events/Projection";
 import type { EventClass } from "../Types/Event";
-import type { Filter, Handler, Options, State } from "../Types/Projection";
+import type { Filter, Handler, Listeners, Message, Options, ProjectionHandler, State } from "../Types/Projection";
 import type { Event } from "./Event";
+import { Queue } from "./Queue";
 
 /*
  |--------------------------------------------------------------------------------
@@ -69,6 +69,47 @@ export class Projection<E extends Event = Event> {
     this.listener?.();
   }
 }
+
+/*
+ |--------------------------------------------------------------------------------
+ | Projections
+ |--------------------------------------------------------------------------------
+ */
+
+export const projections = new (class ProjectionEmitter {
+  public listeners: Listeners = {};
+
+  public queue: Queue<Message>;
+
+  constructor() {
+    this.project = this.project.bind(this);
+    this.queue = new Queue(async ({ event, state }) => {
+      return Promise.all(Array.from(this.listeners[event.type] || []).map((fn) => fn(event, state)));
+    });
+  }
+
+  public async project<E extends Event = Event>(event: E, state: State) {
+    return new Promise<boolean>((resolve) => {
+      this.queue.push({ event, state }, resolve);
+    });
+  }
+
+  public on(type: string, fn: ProjectionHandler) {
+    const listeners = this.listeners[type];
+    if (listeners) {
+      listeners.add(fn);
+    } else {
+      this.listeners[type] = new Set([fn]);
+    }
+    return () => {
+      this.off(type, fn);
+    };
+  }
+
+  public off(type: string, fn: ProjectionHandler) {
+    this.listeners[type]?.delete(fn);
+  }
+})();
 
 /*
  |--------------------------------------------------------------------------------
