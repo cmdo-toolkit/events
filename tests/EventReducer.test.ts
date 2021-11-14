@@ -50,7 +50,7 @@ const mockEvents = [
  |--------------------------------------------------------------------------------
  */
 
-describe.skip("EventReducer", () => {
+describe("EventReducer", () => {
   it("should reduce a list of events into an expected state", () => {
     const state = mockReducer.reduce(mockEvents);
     expect(state).toEqual({

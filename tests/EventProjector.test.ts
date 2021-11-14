@@ -9,7 +9,7 @@ class MockEvent extends Event {
 
 const mockEvent = new MockEvent();
 
-describe.skip("Event Projector", () => {
+describe("Event Projector", () => {
   describe("when registered with .once", () => {
     let mockProjection: Projection;
     let handler: jest.Mock;
