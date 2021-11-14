@@ -1,5 +1,5 @@
-import { event } from "../Events/Projection";
+import { projections } from "./Projection";
 
 export const publisher = {
-  project: event.project
+  project: projections.project
 };
