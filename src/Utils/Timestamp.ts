@@ -1,5 +1,18 @@
+import { HLC } from "../Lib/HLC";
 import { Timestamp } from "../Lib/Timestamp";
-import { clock } from "./Clock";
+
+const clock = new HLC();
+
+/**
+ * Get a date object from given event meta timestamp.
+ *
+ * @param timestamp - Event meta timestamp.
+ *
+ * @returns Date
+ */
+export function getDate(timestamp: string): Date {
+  return new Date(getUnixTimestamp(timestamp));
+}
 
 /**
  * Get logical timestamp based on current time.
@@ -8,7 +21,7 @@ import { clock } from "./Clock";
  */
 export function getLogicalTimestamp(): string {
   const ts = clock.now().toJSON();
-  return `${ts.time}-${String(ts.logical).padStart(5, "0")}`;
+  return `${ts.time}-${String(ts.logical).padStart(2, "0")}`;
 }
 
 /**

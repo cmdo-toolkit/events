@@ -1,7 +1,5 @@
 import type { Timestamp } from "../Lib/Timestamp";
-import { getDate } from "./Date";
-import { getLogicalTimestamp } from "./Timestamp";
-import { getTimestamp } from "./Timestamp";
+import { getDate, getLogicalTimestamp, getTimestamp } from "./Timestamp";
 
 export async function runTimestampTest(i = 10, minDelay = 0, maxDelay = 1000) {
   let timestamps: { count: number; id: string; ts: Timestamp; dt: Date }[] = [];

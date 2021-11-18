@@ -1,40 +1,10 @@
-import { EventNotFoundError } from "../Errors/Store";
-import type { Event as BaseEvent } from "../Lib/Event";
-import type { EventClass, EventDescriptor } from "../Types/Event";
-import type { JSONType } from "../Types/Shared";
+import type { EventRecord } from "../Types/Event";
 
-export abstract class EventStore<Event extends BaseEvent = BaseEvent> {
-  public static readonly EventNotFoundError = EventNotFoundError;
-
-  public readonly events: Record<string, any>;
-
-  constructor(events: JSONType<EventClass<Event>>) {
-    this.events = events;
-    this.toEvent = this.toEvent.bind(this);
-  }
-
+export interface EventStore {
   /**
-   * Convert the event descriptor into a instanced event of the same type.
+   * Append the given event json object and return the recorded event.
    */
-  public toEvent(descriptor: EventDescriptor): Event {
-    const event = this.events[descriptor.event.type];
-    if (!event) {
-      throw new EventNotFoundError(descriptor.event.type);
-    }
-    return event.from(descriptor);
-  }
-
-  /**
-   * Insert the given event descriptor in the local data stores.
-   *
-   * @example
-   *
-   * ```
-   * await events.insert(descriptor);
-   * ```
-   *
-   */
-  public abstract append(descriptor: EventDescriptor): Promise<EventDescriptor>;
+  append(event: EventRecord): Promise<EventRecord>;
 
   /**
    * Get a list of event descriptors for the given stream.
@@ -52,11 +22,11 @@ export abstract class EventStore<Event extends BaseEvent = BaseEvent> {
    *     [(direction ?? 1) === 1 ? "$gt" : "$lt"]: cursor
    *   }
    * }
-   * return events.find(filter).sort({ "event.meta.created": 1 }).toArray();
+   * return events.find(filter).sort({ "event.meta.timestamp": 1 }).toArray();
    * ```
    *
    */
-  public abstract getByStream(stream: string, cursor?: string, direction?: -1 | 1): Promise<EventDescriptor[]>;
+  getByStream(stream: string, cursor?: string, direction?: -1 | 1): Promise<EventRecord[]>;
 
   /**
    * Get the last recorded event in given event stream.
@@ -64,11 +34,11 @@ export abstract class EventStore<Event extends BaseEvent = BaseEvent> {
    * @example
    *
    * ```
-   * return events.findOne({ stream }).sort({ "event.meta.created": -1 });
+   * return events.findOne({ stream }).sort({ "event.meta.timestamp": -1 });
    * ```
    *
    */
-  public abstract getLastEventByStream(stream: string): Promise<EventDescriptor | undefined>;
+  getLastEventByStream(stream: string): Promise<EventRecord | undefined>;
 
   /**
    * Return a outdated check for the descriptor.
@@ -83,11 +53,11 @@ export abstract class EventStore<Event extends BaseEvent = BaseEvent> {
    * ```ts
    * count({
    *   "event.type": event.type,
-   *   "event.meta.created": {
-   *     $gt: event.meta.created
+   *   "event.meta.timestamp": {
+   *     $gt: event.meta.timestamp
    *   }
    * }) > 0
    * ```
    */
-  public abstract outdated(descriptor: EventDescriptor): Promise<boolean>;
+  outdated(event: EventRecord): Promise<boolean>;
 }

@@ -1,4 +1,4 @@
-import type { Event as BaseEvent } from "../Lib/Event";
+import type { EventRecord } from "./Event";
 
 export type Options = {
   filter: Filter;
@@ -24,13 +24,13 @@ export type State = {
   outdated: boolean;
 };
 
-export type Message<Event extends BaseEvent = BaseEvent> = {
+export type Message<Event extends EventRecord = EventRecord> = {
   event: Event;
   state: State;
 };
 
-export type Handler<Event extends BaseEvent = BaseEvent> = (event: Event) => Promise<void>;
+export type Handler<Event extends EventRecord<Event["type"]> = EventRecord> = (event: Event) => Promise<void>;
 
 export type Listeners = Record<string, Set<ProjectionHandler> | undefined>;
 
-export type ProjectionHandler<Event extends BaseEvent = BaseEvent> = (event: Event, state: State) => Promise<void>;
+export type ProjectionHandler<Event extends EventRecord<Event["type"]> = EventRecord> = (event: Event, state: State) => Promise<void>;

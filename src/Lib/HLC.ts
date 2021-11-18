@@ -1,6 +1,27 @@
-import { Options } from "../Types/HCL";
-import { getTime } from "../Utils/Date";
 import { Timestamp } from "./Timestamp";
+
+/*
+ |--------------------------------------------------------------------------------
+ | Types
+ |--------------------------------------------------------------------------------
+ */
+
+export type Options = {
+  time?: typeof getTime;
+  maxOffset?: number;
+  timeUpperBound?: number;
+  toleratedForwardClockJump?: number;
+  last?: {
+    time: number;
+    logical: number;
+  };
+};
+
+/*
+ |--------------------------------------------------------------------------------
+ | Hybrid Logical Clock
+ |--------------------------------------------------------------------------------
+ */
 
 export class HLC {
   public time: typeof getTime;
@@ -13,8 +34,8 @@ export class HLC {
 
   public last: Timestamp;
 
-  constructor({ time, maxOffset = 0, timeUpperBound = 0, toleratedForwardClockJump = 0, last }: Options = {}) {
-    this.time = time || getTime;
+  constructor({ time = getTime, maxOffset = 0, timeUpperBound = 0, toleratedForwardClockJump = 0, last }: Options = {}) {
+    this.time = time;
     this.maxTime = timeUpperBound > 0 ? timeUpperBound : Number.MAX_SAFE_INTEGER;
     this.maxOffset = maxOffset;
     this.timeUpperBound = timeUpperBound;
@@ -115,4 +136,14 @@ export class HLC {
       last: this.last.toJSON()
     });
   }
+}
+
+/*
+ |--------------------------------------------------------------------------------
+ | Utilities
+ |--------------------------------------------------------------------------------
+ */
+
+export function getTime(): number {
+  return Date.now();
 }

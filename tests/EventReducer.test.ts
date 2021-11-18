@@ -1,4 +1,5 @@
-import { Event, Reducer } from "../src";
+import { createReducer } from "../src/Lib/Reducer";
+import { foo, FooCreated, FooMemberAdded } from "./mocks/Events";
 
 /*
  |--------------------------------------------------------------------------------
@@ -6,42 +7,41 @@ import { Event, Reducer } from "../src";
  |--------------------------------------------------------------------------------
  */
 
-class FooCreated extends Event<{
-  title: string;
-}> {
-  public static readonly type = "FooCreated" as const;
-}
+const id = "xyz";
 
-class FooMemberAdded extends Event<{
-  name: string;
-}> {
-  public static readonly type = "FooMemberAdded" as const;
-}
-
-const mockReducer = new Reducer<{
-  title: string;
-  members: string[];
-}>({
-  title: "N/A",
-  members: []
-})
-  .set(FooCreated, (state, { data }) => {
-    return {
-      ...state,
-      title: data.title
-    };
-  })
-  .set(FooMemberAdded, (state, { data }) => {
-    return {
-      ...state,
-      members: [...state.members, data.name]
-    };
-  });
+const reduce = createReducer<
+  {
+    title: string;
+    members: string[];
+  },
+  FooCreated | FooMemberAdded
+>(
+  {
+    title: "",
+    members: []
+  },
+  (state, event) => {
+    switch (event.type) {
+      case "FooCreated": {
+        return {
+          ...state,
+          title: event.data.title
+        };
+      }
+      case "FooMemberAdded": {
+        return {
+          ...state,
+          members: [...state.members, event.data.name]
+        };
+      }
+    }
+  }
+);
 
 const mockEvents = [
-  new FooCreated({ title: "Bar" }),
-  new FooMemberAdded({ name: "John Foo" }),
-  new FooMemberAdded({ name: "Jane Foo" })
+  foo.created({ id, title: "Bar" }),
+  foo.memberAdded({ id, name: "John Foo" }),
+  foo.memberAdded({ id, name: "Jane Foo" })
 ];
 
 /*
@@ -52,7 +52,7 @@ const mockEvents = [
 
 describe("EventReducer", () => {
   it("should reduce a list of events into an expected state", () => {
-    const state = mockReducer.reduce(mockEvents);
+    const state = reduce(mockEvents);
     expect(state).toEqual({
       title: "Bar",
       members: ["John Foo", "Jane Foo"]

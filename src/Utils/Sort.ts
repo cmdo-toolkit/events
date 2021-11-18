@@ -1,14 +1,14 @@
-import { EventDescriptor } from "../Types/Event";
+import { EventRecord } from "../Types/Event";
 
-export function byCreated(a: EventDescriptor, b: EventDescriptor): number {
-  if (a.event.meta.created > b.event.meta.created) {
+export function byCreated(a: EventRecord, b: EventRecord): number {
+  if (a.meta.timestamp > b.meta.timestamp) {
     return 1;
   }
   return -1;
 }
 
-export function byReversedCreated(a: EventDescriptor, b: EventDescriptor): number {
-  if (a.event.meta.created < b.event.meta.created) {
+export function byReversedCreated(a: EventRecord, b: EventRecord): number {
+  if (a.meta.timestamp < b.meta.timestamp) {
     return 1;
   }
   return -1;

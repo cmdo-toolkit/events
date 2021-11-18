@@ -1,12 +1,12 @@
 import type { Queue } from "../Lib/Queue";
-import type { EventDescriptor } from "./Event";
+import type { EventRecord } from "./Event";
 
-export type StreamNetworkHandler = (descriptor: EventDescriptor) => void;
+export type StreamNetworkHandler = (descriptor: EventRecord) => void;
 
 export type Streams = Record<string, StreamObserver>;
 
 export type StreamObserver = {
   subscribers: number;
-  queue: Queue<EventDescriptor>;
-  onEvent: (descriptor: EventDescriptor) => void;
+  queue: Queue<EventRecord>;
+  onEvent: (event: EventRecord) => void;
 };

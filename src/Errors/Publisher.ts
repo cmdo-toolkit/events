@@ -1,4 +1,4 @@
-import type { Event } from "../Lib/Event";
+import type { EventRecord } from "../Types/Event";
 
 export class DuplicateHandlerError extends Error {
   public readonly type = "DuplicateHandlerError";
@@ -8,23 +8,23 @@ export class DuplicateHandlerError extends Error {
   }
 }
 
-export class HydratedEventError<E extends Event = Event> extends Error {
+export class HydratedEventError<Event extends EventRecord = EventRecord> extends Error {
   public readonly type = "HydratedEventError";
 
-  public readonly event: E;
+  public readonly event: Event;
 
-  constructor(event: E) {
+  constructor(event: Event) {
     super(`Event Publisher Violation: Publish '${event.type}' failed, subscriber does not support hydrated events.`);
     this.event = event;
   }
 }
 
-export class OutdatedEventError<E extends Event = Event> extends Error {
+export class OutdatedEventError<Event extends EventRecord = EventRecord> extends Error {
   public readonly type = "OutdatedEventError";
 
-  public readonly event: E;
+  public readonly event: Event;
 
-  constructor(event: E) {
+  constructor(event: Event) {
     super(`Event Publisher Violation: Publish '${event.type}' failed, subscriber does not support outdated events.`);
     this.event = event;
   }

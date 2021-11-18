@@ -1,17 +1,17 @@
-import type { EventDescriptor } from "../Types/Event";
+import type { EventRecord } from "../Types/Event";
 import type { StreamNetworkHandler } from "../Types/Stream";
 
 export interface EventNetwork {
   /**
    * Push uncomitted descriptors to remote peer.
    */
-  push(descriptors: EventDescriptor[]): Promise<void>;
+  push(events: EventRecord[]): Promise<void>;
 
   /**
    * Pull events from the given stream. If a hash is provided we pull
    * the events greater than the given hash.
    */
-  pull(stream: string, hash?: string): Promise<EventDescriptor[]>;
+  pull(stream: string, hash?: string): Promise<EventRecord[]>;
 
   /**
    * Subscribe to new events for a given stream.

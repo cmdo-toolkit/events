@@ -1,10 +1,12 @@
 import type { ActionContext, ActionHandler } from "../Types/Action";
-import { Stream } from "./Stream";
+import { append, reduce, subscribe } from "./Stream";
 
 export function action<Data>(handler: ActionHandler<Data>) {
   return async (data: Data, ctx?: ActionContext) => {
     await handler(data, {
-      streams: Stream,
+      append,
+      reduce,
+      subscribe,
       ...(ctx ?? {})
     });
   };

@@ -1,56 +1,42 @@
-import { JSONType } from "./Shared";
-
-export type EventClass<T> = {
-  new (...args: any[]): T;
-  type: string;
-  genesis?: boolean;
-};
-
-export type EventDescriptor<Data extends JSONType = JSONType> = {
-  /**
-   * Stream this descriptor belongs to.
-   */
-  stream: string;
-
-  /**
-   * JSON representation of a instanced event. This is the data that
-   * gets used to generate the descriptors hash value.
-   */
-  event: EventData<Data>;
-
-  /**
-   * A hashed value of the event value of the descriptor. This is also
-   * used for the top layer when generating a merkle tree.
-   */
-  hash: string;
-
-  /**
-   * Previous event descriptor hash this descriptor is chained to.
-   * When performing a push operation, if the push target latest
-   * descriptor does not match the prevHash value we need to perform
-   * a pull.
-   */
-  prevHash?: string;
-
-  /**
-   * A list of heads designating the target position that a peer was
-   * last reporting on this event stream. This allows us to send this
-   * events hash when we want to push events that the peer has not
-   * yet seen.
-   */
-  heads?: string[];
-};
-
-export type EventData<EventData extends JSONType = JSONType> = {
-  type: string;
-  data: EventData;
+export type EventRecord<EventType = unknown, Data = unknown> = {
+  type: EventType;
+  data: EventData<Data>;
   meta: EventMeta;
+  hash: EventHash;
 };
+
+export type EventData<Data> = {
+  /**
+   * Id representing the primary identifier of the entity, aggregate,
+   * stream, entity that the event belongs to.
+   *
+   * @remarks
+   *
+   * For example an account is identified by a primary id. This id
+   * would be represented within the entity id of this event.
+   */
+  id: string;
+} & Data;
 
 export interface EventMeta {
   /**
-   * Logical hybrid clock timestamp representing the time of
-   * which the event was created.
+   * Logical hybrid clock timestamp representing the wall time of
+   * when the event was created.
    */
-  created: string;
+  timestamp: string;
 }
+
+export type EventHash = {
+  /**
+   * Hash value of the event type, data and meta details. This is the
+   * hash used when generating the merkle tree.
+   */
+  commit: string;
+
+  /**
+   * Commit has of the preceeding event in a entity context stream.
+   * This is assigned by the event store when the event is appended
+   * to the stream.
+   */
+  parent?: string;
+};

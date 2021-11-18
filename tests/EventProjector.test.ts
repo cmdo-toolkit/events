@@ -1,22 +1,20 @@
-import { Event, Projection, projection } from "../src";
+import { Projection, projection } from "../src/Lib/Projection";
 import { publisher } from "../src/Lib/Publisher";
+import { EventRecord } from "../src/Types/Event";
+import { getEventFactory } from "../src/Utils/Event";
 
-const EVENT_TYPE = "MockEvent";
+type MockEventAdded = EventRecord<"MockEventAdded">;
 
-class MockEvent extends Event {
-  public static readonly type = EVENT_TYPE;
-}
-
-const mockEvent = new MockEvent();
+const mockEvent = getEventFactory<MockEventAdded>("MockEventAdded")({ id: "mock" });
 
 describe("Event Projector", () => {
   describe("when registered with .once", () => {
-    let mockProjection: Projection;
+    let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
 
     beforeEach(() => {
       handler = jest.fn();
-      mockProjection = projection.once(MockEvent, handler);
+      mockProjection = projection.once<MockEventAdded>("MockEventAdded", handler);
     });
 
     afterEach(() => {
@@ -40,12 +38,12 @@ describe("Event Projector", () => {
   });
 
   describe("when registered with .on", () => {
-    let mockProjection: Projection;
+    let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
 
     beforeEach(() => {
       handler = jest.fn();
-      mockProjection = projection.on(MockEvent, handler);
+      mockProjection = projection.on<MockEventAdded>("MockEventAdded", handler);
     });
 
     afterEach(() => {
@@ -69,12 +67,12 @@ describe("Event Projector", () => {
   });
 
   describe("when registered with .all", () => {
-    let mockProjection: Projection;
+    let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
 
     beforeEach(() => {
       handler = jest.fn();
-      mockProjection = projection.all(MockEvent, handler);
+      mockProjection = projection.all<MockEventAdded>("MockEventAdded", handler);
     });
 
     afterEach(() => {
