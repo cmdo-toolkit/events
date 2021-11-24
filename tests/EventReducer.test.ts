@@ -1,5 +1,7 @@
+import { container } from "../src/Container";
 import { createReducer } from "../src/Lib/Reducer";
 import { foo, FooCreated, FooMemberAdded } from "./mocks/Events";
+import { TestEventStore } from "./mocks/TestEventStore";
 
 /*
  |--------------------------------------------------------------------------------
@@ -7,7 +9,7 @@ import { foo, FooCreated, FooMemberAdded } from "./mocks/Events";
  |--------------------------------------------------------------------------------
  */
 
-const id = "xyz";
+const streamId = "xyz";
 
 const reduce = createReducer<
   {
@@ -38,12 +40,6 @@ const reduce = createReducer<
   }
 );
 
-const mockEvents = [
-  foo.created({ id, title: "Bar" }),
-  foo.memberAdded({ id, name: "John Foo" }),
-  foo.memberAdded({ id, name: "Jane Foo" })
-];
-
 /*
  |--------------------------------------------------------------------------------
  | Unit Tests
@@ -51,6 +47,17 @@ const mockEvents = [
  */
 
 describe("EventReducer", () => {
+  let mockEvents: [Readonly<FooCreated>, Readonly<FooMemberAdded>, Readonly<FooMemberAdded>];
+
+  beforeAll(async () => {
+    container.set("EventStore", new TestEventStore());
+    mockEvents = await Promise.all([
+      foo.created(streamId, { title: "Bar" }),
+      foo.memberAdded(streamId, { name: "John Foo" }),
+      foo.memberAdded(streamId, { name: "Jane Foo" })
+    ]);
+  });
+
   it("should reduce a list of events into an expected state", () => {
     const state = reduce(mockEvents);
     expect(state).toEqual({

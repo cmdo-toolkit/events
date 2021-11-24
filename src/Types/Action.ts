@@ -1,9 +1,9 @@
-import type { append, reduce, subscribe } from "../Lib/Stream";
+import type { reduce, save, subscribe } from "../Lib/Stream";
 
 export type ActionHandler<Data> = (data: Data, ctx: ActionContext) => Promise<void>;
 
 export interface ActionContext {
-  append: typeof append;
+  save: typeof save;
   subscribe: typeof subscribe;
   reduce: typeof reduce;
 }

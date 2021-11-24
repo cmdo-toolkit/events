@@ -1,24 +1,35 @@
 import * as CryptoJS from "crypto-js";
 
-import type { EventHash, EventMeta, EventRecord } from "../Types/Event";
+import { container } from "../Container";
+import type { EventRecord } from "../Types/Event";
 import { getLogicalTimestamp } from "../Utils/Timestamp";
 
-export function getEventFactory<Record extends EventRecord<Record["type"], Record["data"]>>(type: Record["type"]) {
-  return function (data: Record["data"], meta: Partial<EventMeta> = {}) {
-    const event = { type, data, meta: getEventMeta(meta) } as Omit<Record, "hash">;
-    return Object.freeze({ ...event, hash: getEventHash(event) }) as Readonly<Record>;
+export function getEventFactory<Record extends EventRecord>(type: Record["type"]) {
+  return async function (streamId: string, data: Record["data"] = {}, meta: Record["meta"] = {}) {
+    const { height, parent } = await getEventAssignments(streamId);
+    const event = {
+      streamId,
+      type,
+      data,
+      meta,
+      date: getLogicalTimestamp(),
+      author: "system",
+      height,
+      parent
+    } as Omit<Record, "commit">;
+    return Object.freeze({ ...event, commit: getCommitHash(event) }) as Readonly<Record>;
   };
 }
 
-export function getRebasedEvent<Record extends EventRecord>({ type, data, meta }: Record, parent: string) {
-  const event = { type, data, meta } as Omit<Record, "hash">;
-  return Object.freeze({ ...event, hash: getEventHash(event, parent) }) as Readonly<Record>;
+async function getEventAssignments(streamId: string, store = container.get("EventStore")) {
+  const event = await store.getLastEvent("stream", streamId);
+  console.log("last event", event);
+  return {
+    height: (event?.height === undefined ? -1 : event.height) + 1,
+    parent: event?.commit
+  };
 }
 
-export function getEventMeta(meta: Partial<EventMeta> = {} as EventMeta): EventMeta {
-  return { ...meta, timestamp: getLogicalTimestamp() };
-}
-
-export function getEventHash<Record extends EventRecord>(event: Omit<Record, "hash">, parent?: string): EventHash {
-  return { commit: CryptoJS.SHA256(JSON.stringify(event)).toString(), parent };
+function getCommitHash<Record extends EventRecord>(event: Omit<Record, "commit">): string {
+  return CryptoJS.SHA256(JSON.stringify(event)).toString();
 }

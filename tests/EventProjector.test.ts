@@ -1,16 +1,22 @@
+import { container } from "../src/Container";
 import { Projection, projection } from "../src/Lib/Projection";
 import { publisher } from "../src/Lib/Publisher";
 import { EventRecord } from "../src/Types/Event";
 import { getEventFactory } from "../src/Utils/Event";
+import { TestEventStore } from "./mocks/TestEventStore";
 
 type MockEventAdded = EventRecord<"MockEventAdded">;
 
-const mockEvent = getEventFactory<MockEventAdded>("MockEventAdded")({ id: "mock" });
-
 describe("Event Projector", () => {
   describe("when registered with .once", () => {
+    let mockEvent: Readonly<MockEventAdded>;
     let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
+
+    beforeAll(async () => {
+      container.set("EventStore", new TestEventStore());
+      mockEvent = await getEventFactory<MockEventAdded>("MockEventAdded")("mock");
+    });
 
     beforeEach(() => {
       handler = jest.fn();
@@ -38,8 +44,14 @@ describe("Event Projector", () => {
   });
 
   describe("when registered with .on", () => {
+    let mockEvent: Readonly<MockEventAdded>;
     let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
+
+    beforeAll(async () => {
+      container.set("EventStore", new TestEventStore());
+      mockEvent = await getEventFactory<MockEventAdded>("MockEventAdded")("mock");
+    });
 
     beforeEach(() => {
       handler = jest.fn();
@@ -67,8 +79,14 @@ describe("Event Projector", () => {
   });
 
   describe("when registered with .all", () => {
+    let mockEvent: Readonly<MockEventAdded>;
     let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
+
+    beforeAll(async () => {
+      container.set("EventStore", new TestEventStore());
+      mockEvent = await getEventFactory<MockEventAdded>("MockEventAdded")("mock");
+    });
 
     beforeEach(() => {
       handler = jest.fn();

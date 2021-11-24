@@ -130,7 +130,7 @@ export const projection = {
    * We dissallow `hydrate` and `outdated` as these events represents events
    * that has already been processed.
    */
-  once<Event extends EventRecord<Event["type"], Event["data"]>>(type: Event["type"], handler: Handler<Event>) {
+  once<Event extends EventRecord>(type: Event["type"], handler: Handler<Event>) {
     return new Projection<Event>(type, handler, { filter: FILTER_ONCE });
   },
 
@@ -154,7 +154,7 @@ export const projection = {
    * have processing requirements that needs to know about every unknown
    * events that has occured in the event stream.
    */
-  on<Event extends EventRecord<Event["type"], Event["data"]>>(type: Event["type"], handler: Handler<Event>) {
+  on<Event extends EventRecord>(type: Event["type"], handler: Handler<Event>) {
     return new Projection<Event>(type, handler, { filter: FILTER_CONTINUOUS });
   },
 
@@ -167,7 +167,7 @@ export const projection = {
    * stricter defintitons of once and on patterns. This is a good place
    * to deal with data that does not depend on a strict order of events.
    */
-  all<Event extends EventRecord<Event["type"], Event["data"]>>(type: Event["type"], handler: Handler<Event>) {
+  all<Event extends EventRecord>(type: Event["type"], handler: Handler<Event>) {
     return new Projection<Event>(type, handler, { filter: FILTER_ALL });
   }
 };
