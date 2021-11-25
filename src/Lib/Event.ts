@@ -23,7 +23,6 @@ export function getEventFactory<Record extends EventRecord>(type: Record["type"]
 
 async function getEventAssignments(streamId: string, store = container.get("EventStore")) {
   const event = await store.getLastEvent("stream", streamId);
-  console.log("last event", event);
   return {
     height: (event?.height === undefined ? -1 : event.height) + 1,
     parent: event?.commit

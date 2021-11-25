@@ -1,5 +1,6 @@
 export { container } from "./Container";
 export { action } from "./Lib/Action";
+export { getEventFactory } from "./Lib/Event";
 export { Projection, projection } from "./Lib/Projection";
 export { createReducer } from "./Lib/Reducer";
 export * as stream from "./Lib/Stream";
@@ -9,6 +10,5 @@ export type { ActionContext } from "./Types/Action";
 export type { EventRecord } from "./Types/Event";
 export type { NetworkStatus, NetworkType } from "./Types/Network";
 export type { StreamNetworkHandler } from "./Types/Stream";
-export { getEventFactory } from "./Utils/Event";
 export { byCreated, byReversedCreated } from "./Utils/Sort";
 export { getDate, getLogicalTimestamp } from "./Utils/Timestamp";

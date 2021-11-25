@@ -1,8 +1,8 @@
 import { container } from "../src/Container";
+import { getEventFactory } from "../src/Lib/Event";
 import { Projection, projection } from "../src/Lib/Projection";
 import { publisher } from "../src/Lib/Publisher";
 import { EventRecord } from "../src/Types/Event";
-import { getEventFactory } from "../src/Utils/Event";
 import { TestEventStore } from "./mocks/TestEventStore";
 
 type MockEventAdded = EventRecord<"MockEventAdded">;
