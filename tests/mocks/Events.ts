@@ -1,10 +1,12 @@
-import { getEventFactory } from "../../src/Lib/Event";
-import type { EventRecord } from "../../src/Types/Event";
+import { createEvent } from "../../src/Lib/Event";
+import type { EventBase } from "../../src/Types/Event";
 
-export type FooCreated = EventRecord<"FooCreated", { title: string }>;
-export type FooMemberAdded = EventRecord<"FooMemberAdded", { name: string }>;
+export type FooCreated = EventBase<"FooCreated", { title: string }, never>;
+export type FooMemberAdded = EventBase<"FooMemberAdded", { name: string }, never>;
 
 export const foo = {
-  created: getEventFactory<FooCreated>("FooCreated"),
-  memberAdded: getEventFactory<FooMemberAdded>("FooMemberAdded")
+  created: createEvent<FooCreated>("FooCreated"),
+  memberAdded: createEvent<FooMemberAdded>("FooMemberAdded")
 };
+
+export type Event = FooCreated | FooMemberAdded;

@@ -1,12 +1,11 @@
+import { container } from "../Container";
 import type { ActionContext, ActionHandler } from "../Types/Action";
-import { reduce, save, subscribe } from "./Stream";
 
-export function action<Data>(handler: ActionHandler<Data>) {
-  return async (data: Data, ctx?: ActionContext) => {
+export function createAction<Data>(handler: ActionHandler<Data>) {
+  return async (data: Data, ctx?: ActionContext, stream = container.get("EventStream")) => {
     await handler(data, {
-      save,
-      reduce,
-      subscribe,
+      append: stream.append.bind(stream),
+      reduce: stream.reduce.bind(stream),
       ...(ctx ?? {})
     });
   };

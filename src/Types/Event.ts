@@ -1,10 +1,22 @@
-export type EventRecord<EventType = unknown, EventData = unknown, EventMeta = unknown> = {
-  /**
-   * Stream id identifies the stream which represents a single entity
-   * sequence of events.
-   */
-  streamId: string;
+export type EventFactoryPayload<Event extends EventBase> = EventFactoryData<Event> & EventFactoryMeta<Event>;
 
+type EventFactoryData<Event extends EventBase> = Event["data"] extends never
+  ? {
+      data?: undefined;
+    }
+  : {
+      data: Event["data"];
+    };
+
+type EventFactoryMeta<Event extends EventBase> = Event["meta"] extends never
+  ? {
+      meta?: undefined;
+    }
+  : {
+      meta: Event["meta"];
+    };
+
+export type EventBase<EventType = unknown, EventData = unknown | never, EventMeta = unknown | never> = {
   /**
    * Event identifier describing the intent of the event in a past
    * tense format.
@@ -28,11 +40,14 @@ export type EventRecord<EventType = unknown, EventData = unknown, EventMeta = un
    * the event was created.
    */
   date: string;
+};
 
+export type EventRecord<Event extends EventBase = EventBase> = Event & {
   /**
-   * System identifier of the subject that authored the event.
+   * Stream id identifies the stream which represents a single entity
+   * sequence of events.
    */
-  author?: string;
+  streamId: string;
 
   /**
    * Position of the event in the event store. This differs from the

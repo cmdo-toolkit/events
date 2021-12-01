@@ -1,21 +1,36 @@
 import { container } from "../src/Container";
-import { getEventFactory } from "../src/Lib/Event";
+import { createEvent, createEventRecord } from "../src/Lib/Event";
 import { Projection, projection } from "../src/Lib/Projection";
 import { publisher } from "../src/Lib/Publisher";
-import { EventRecord } from "../src/Types/Event";
+import { EventBase, EventRecord } from "../src/Types/Event";
 import { TestEventStore } from "./mocks/TestEventStore";
+import { TestEventStream } from "./mocks/TestEventStream";
 
-type MockEventAdded = EventRecord<"MockEventAdded">;
+type MockEventAdded = EventBase<"MockEventAdded", { entityId: string }, never>;
+
+function getMockedEventRecord() {
+  return createEventRecord(
+    "mock",
+    createEvent<MockEventAdded>("MockEventAdded")({
+      data: {
+        entityId: "xyz"
+      }
+    }),
+    {
+      height: 0
+    }
+  );
+}
 
 describe("Event Projector", () => {
   describe("when registered with .once", () => {
-    let mockEvent: Readonly<MockEventAdded>;
+    let mockEvent: EventRecord<MockEventAdded>;
     let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
 
-    beforeAll(async () => {
-      container.set("EventStore", new TestEventStore());
-      mockEvent = await getEventFactory<MockEventAdded>("MockEventAdded")("mock");
+    beforeAll(() => {
+      container.set("EventStore", new TestEventStore()).set("EventStream", new TestEventStream());
+      mockEvent = getMockedEventRecord();
     });
 
     beforeEach(() => {
@@ -44,13 +59,13 @@ describe("Event Projector", () => {
   });
 
   describe("when registered with .on", () => {
-    let mockEvent: Readonly<MockEventAdded>;
+    let mockEvent: EventRecord<MockEventAdded>;
     let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
 
-    beforeAll(async () => {
-      container.set("EventStore", new TestEventStore());
-      mockEvent = await getEventFactory<MockEventAdded>("MockEventAdded")("mock");
+    beforeAll(() => {
+      container.set("EventStore", new TestEventStore()).set("EventStream", new TestEventStream());
+      mockEvent = getMockedEventRecord();
     });
 
     beforeEach(() => {
@@ -79,13 +94,13 @@ describe("Event Projector", () => {
   });
 
   describe("when registered with .all", () => {
-    let mockEvent: Readonly<MockEventAdded>;
+    let mockEvent: EventRecord<MockEventAdded>;
     let mockProjection: Projection<MockEventAdded>;
     let handler: jest.Mock;
 
-    beforeAll(async () => {
-      container.set("EventStore", new TestEventStore());
-      mockEvent = await getEventFactory<MockEventAdded>("MockEventAdded")("mock");
+    beforeAll(() => {
+      container.set("EventStore", new TestEventStore()).set("EventStream", new TestEventStream());
+      mockEvent = getMockedEventRecord();
     });
 
     beforeEach(() => {

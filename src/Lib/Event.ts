@@ -1,34 +1,31 @@
 import * as CryptoJS from "crypto-js";
 
-import { container } from "../Container";
-import type { EventRecord } from "../Types/Event";
+import type { EventBase, EventFactoryPayload, EventRecord } from "../Types/Event";
 import { getLogicalTimestamp } from "../Utils/Timestamp";
 
-export function getEventFactory<Record extends EventRecord>(type: Record["type"]) {
-  return async function (streamId: string, data: Record["data"] = {}, meta: Record["meta"] = {}) {
-    const { height, parent } = await getEventAssignments(streamId);
-    const event = {
-      streamId,
-      type,
-      data,
-      meta,
-      date: getLogicalTimestamp(),
-      author: "system",
-      height,
-      parent
-    } as Omit<Record, "commit">;
-    return Object.freeze({ ...event, commit: getCommitHash(event) }) as Readonly<Record>;
+export function createEvent<Event extends EventBase>(type: Event["type"]) {
+  return function (payload: EventFactoryPayload<Event>) {
+    return getEvent(type, payload.data, payload.meta);
   };
 }
 
-async function getEventAssignments(streamId: string, store = container.get("EventStore")) {
-  const event = await store.getLastEvent("stream", streamId);
+export function createEventRecord<Event extends EventBase>(
+  streamId: string,
+  event: Event,
+  { height = 0, parent }: { height: number; parent?: string }
+) {
+  const record = { streamId, ...event, height, parent };
+  return Object.freeze({
+    ...record,
+    commit: CryptoJS.SHA256(JSON.stringify(record)).toString()
+  }) as Readonly<EventRecord<Event>>;
+}
+
+function getEvent<Event extends EventBase>(type: Event["type"], data: Event["data"] = {}, meta: Event["meta"] = {}) {
   return {
-    height: (event?.height === undefined ? -1 : event.height) + 1,
-    parent: event?.commit
-  };
-}
-
-function getCommitHash<Record extends EventRecord>(event: Omit<Record, "commit">): string {
-  return CryptoJS.SHA256(JSON.stringify(event)).toString();
+    type,
+    data,
+    meta,
+    date: getLogicalTimestamp()
+  } as Event;
 }
