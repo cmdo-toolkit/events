@@ -41,4 +41,12 @@ export class TestEventStream implements EventStream<Event> {
     const events = await this.getEvents(streamId);
     return events[events.length - 1];
   }
+
+  public subscribe() {
+    // ...
+  }
+
+  public unsubscribe() {
+    // ...
+  }
 }
